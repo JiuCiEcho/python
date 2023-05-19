@@ -15,6 +15,7 @@ for col in df.columns:
         if col == 'last_login_time' or col == 'addtime':
             df[col] = pd.to_datetime(df[col])
 
+
 # 年度注册用户分析
 df['year'] = pd.DatetimeIndex(df['addtime']).year
 df['month'] = pd.DatetimeIndex(df['addtime']).month
@@ -27,21 +28,22 @@ plt.ylabel('Number of registered users')
 plt.title('Annual growth of registered users')
 plt.show()
 
+
 # 新注册用户分析
-start_date = pd.Timestamp('2017-01-01')
-end_date = pd.Timestamp('2017-06-30')
+start_date = pd.Timestamp('2017-01-01 00:00:00')
+end_date = pd.Timestamp('2017-06-30 00:00:00')
 mask = (df['addtime'] >= start_date) & (df['addtime'] <= end_date)
 new_reg_users = df.loc[mask]
-new_reg_users_day = new_reg_users.groupby(['addtime']).agg({'username': 'count'}).reset_index()
+new_reg_users['week'] = new_reg_users['addtime'].dt.strftime('%U')
 
-# 将日期作为行，月份作为列，统计每个月每天新注册用户数量，生成透视表
-new_reg_users_day['day'] = pd.DatetimeIndex(new_reg_users_day['addtime']).day
-new_reg_users_pivot = pd.pivot_table(new_reg_users_day, values='username', index='day', columns='addtime').fillna(0)
+weekly_reg_users = new_reg_users.groupby('week')['username'].count().reset_index()
 
 plt.figure(figsize=(12, 6))
-sns.heatmap(data=new_reg_users_pivot, cmap='coolwarm')
-plt.xlabel('Date')
-plt.ylabel('Day of month')
-plt.title('New registered users during Jan-Jun 2017')
+sns.lineplot(data=weekly_reg_users, x='week', y='username', color='blue', label='Registered Users')
+plt.fill_between(weekly_reg_users['week'], weekly_reg_users['username'], alpha=0.2, color='blue')
+plt.xlabel('Week')
+plt.ylabel('Number of registered users')
+plt.title('Weekly new registered users (Jan-Jun 2017)')
+plt.xticks(rotation=45)
+plt.legend()
 plt.show()
-
