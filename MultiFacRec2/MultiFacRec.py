@@ -2,8 +2,9 @@ import cv2
 import os
 import numpy as np
 
+
 class FaceRecognizer:
-    def __init__(self, data_dir):
+    def __init__(self, data_dir, model_file):
         """
         初始化人脸识别器，并训练人脸识别模型。
         """
@@ -12,6 +13,13 @@ class FaceRecognizer:
         self.people = []
         self.faces = []
         self.labels = []
+        self.train(data_dir)
+        self.face_recognizer.save(model_file)
+
+    def train(self, data_dir):
+        """
+        训练人脸识别模型。
+        """
         for folder_name in os.listdir(data_dir):
             folder_path = os.path.join(data_dir, folder_name)
             if not os.path.isdir(folder_path):
@@ -21,10 +29,22 @@ class FaceRecognizer:
                 image_path = os.path.join(folder_path, filename)
                 image = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), cv2.IMREAD_COLOR)
                 gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-                gray = cv2.resize(gray, (100, 100))
-                self.faces.append(gray)
-                self.labels.append(len(self.people)-1)
+                faces_rects = self.face_detector.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=5)
+                if len(faces_rects) == 1:
+                    (x, y, w, h) = faces_rects[0]
+                    face = gray[y:y + h, x:x + w]
+                    face = cv2.resize(face, (100, 100))
+                    self.faces.append(face)
+                    self.labels.append(len(self.people) - 1)
+                else:
+                    print("Warning: Skipping image '{}' due to no or multiple faces detected.".format(image_path))
         self.face_recognizer.train(self.faces, np.array(self.labels))
+
+    def load_model(self, model_file):
+        """
+        加载训练好的人脸识别模型。
+        """
+        self.face_recognizer.read(model_file)
 
     def recognize(self, frame):
         """
@@ -33,7 +53,7 @@ class FaceRecognizer:
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         faces_rects = self.face_detector.detectMultiScale(gray, scaleFactor=1.3, minNeighbors=5)
         for (x, y, w, h) in faces_rects:
-            face = gray[y:y+h, x:x+w]
+            face = gray[y:y + h, x:x + w]
             # 对每个检测到的人脸进行多次识别，并取平均值
             predictions = []
             for i in range(5):
@@ -48,12 +68,18 @@ class FaceRecognizer:
                 name = "Unknown"
                 color = (0, 0, 255)
             # 在帧上标出人脸和人名
-            cv2.rectangle(frame, (x, y), (x+w, y+h), color, 2)
-            cv2.putText(frame, name, (x+5, y-5), cv2.FONT_HERSHEY_PLAIN, 1, color, 2)
+            cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
+            cv2.putText(frame, name, (x + 5, y - 5), cv2.FONT_HERSHEY_PLAIN, 1, color, 2)
         return frame
 
+
 if __name__ == "__main__":
-    recognizer = FaceRecognizer("dataset")
+    data_dir = "dataset"
+    model_file = "face_model.yml"
+
+    recognizer = FaceRecognizer(data_dir, model_file)
+    recognizer.load_model(model_file)
+
     cap = cv2.VideoCapture(0)
     while True:
         ret, frame = cap.read()
