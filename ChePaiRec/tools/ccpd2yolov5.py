@@ -43,13 +43,13 @@ def txt_translate(path, txt_path):
 
 if __name__ == '__main__':
     # det图片存储地址
-    trainDir = r"K:\MyProject\datasets\ccpd\new\ccpd_2019\images\train\\"
-    validDir = r"K:\MyProject\datasets\ccpd\new\ccpd_2019\images\val\\"
-    testDir = r"K:\MyProject\datasets\ccpd\new\ccpd_2019\images\test\\"
+    trainDir = r"D:\download\CCPD2019\CCPD2019\images\train\\"
+    validDir = r"D:\download\CCPD2019\CCPD2019\images\val\\"
+    testDir = r"D:\download\CCPD2019\CCPD2019\images\test\\"
     # det txt存储地址
-    train_txt_path = r"K:\MyProject\datasets\ccpd\new\ccpd_2019\labels\train\\"
-    val_txt_path = r"K:\MyProject\datasets\ccpd\new\ccpd_2019\labels\val\\"
-    test_txt_path = r"K:\MyProject\datasets\ccpd\new\ccpd_2019\labels\test\\"
+    train_txt_path = r"D:\download\CCPD2019\CCPD2019\labels\train\\"
+    val_txt_path = r"D:\download\CCPD2019\CCPD2019\labels\val\\"
+    test_txt_path = r"D:\download\CCPD2019\CCPD2019\labels\test\\"
     txt_translate(trainDir, train_txt_path)
     txt_translate(validDir, val_txt_path)
     txt_translate(testDir, test_txt_path)
